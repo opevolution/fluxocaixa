@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    
+         <record id="view_account_flow_cash_form" model="ir.ui.view">
+            <field name="name">account.flow_cash.form</field>
+            <field name="model">account.flow_cash</field>
+            <field name="arch" type="xml">
+                <form string="Fluxo Caixa" version="7.0">
+                	<header>
+                		<label align="0.7" string="fluxo de caixa" class="oe_inline"/>
+                	</header>
+                	<sheet> 
+                		<group>
+                			<field name="date_from"/>
+                			<field name="date_to"/>	
+                		</group>
+                		<group>
+                			<field name="linhas_ids" nolabel="1">
+				                <tree string="Fluxo de Caixa">
+				                    <field name="date"/>
+				                    <field name="val_in"/>
+				                    <field name="val_out"/>
+				                    <field name="val_add"/>
+				                    <field name="val_sum"/>
+				                    <field name="name"/>
+				                    <field name="state"/> 
+				                </tree>
+                			</field>
+                		</group>
+                	</sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_account_flow_cash_form" model="ir.actions.act_window">
+            <field name="name">Fluxo de Caixa</field>
+            <field name="res_model">account.flow_cash</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_account_flow_cash_form"/>
+        </record>
+    
+    
+        <record id="view_flow_cash_line_tree" model="ir.ui.view">
+            <field name="name">account.flow_cash.line.tree</field>
+            <field name="model">account.flow_cash.line</field>
+            <field name="arch" type="xml">
+                <tree string="Fluxo de Caixa">
+                    <field name="date"/>
+                    <field name="val_in"/>
+                    <field name="val_out"/>
+                    <field name="val_add"/>
+                    <field name="val_sum"/>
+                    <field name="name"/>
+                    <field name="state"/>
+				</tree>
+            </field>
+        </record>
+        
+        <record id="action_flow_cash_line_tree" model="ir.actions.act_window">
+            <field name="name">Fluxo de Caixa</field>
+            <field name="res_model">account.flow_cash.line</field>
+            <field name="view_type">tree</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_flow_cash_line_tree"/>
+       </record>
+       
+    </data>
+</openerp>

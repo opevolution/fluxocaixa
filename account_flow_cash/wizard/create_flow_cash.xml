@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_create_flow_cash" model="ir.ui.view">
+            <field name="name">create.flow_cash.form</field>
+            <field name="model">create.flow_cash</field>
+            <field name="arch" type="xml">
+                <form string="Fluxo Caixa do Período" version="7.0">
+                	<div>
+                		<label align="0.7" string="Visualizar fluxo de caixa." class="oe_inline"/>	
+                	</div>
+                    <group>
+                    	<field name="target_move"/>
+                    	<field name="comp_transf"/>
+                    </group>
+                    <group>
+                    	<group>
+                    		<field name="date_from" attrs="{'readonly' : [('target_move','=','pv')]}"/>/>
+                    	</group>
+						<group>
+							<field name="date_to" attrs="{'readonly' : [('target_move','=','ok')]}"/>
+						</group>
+                    </group>
+                    <footer>
+                        <button string="Visualizar" name="show_flow_cash" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancelar" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+        
+         <record id="action_create_flow_cash" model="ir.actions.act_window">
+            <field name="name">Fluxo de caixa</field>
+            <field name="res_model">create.flow_cash</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_create_flow_cash"/>
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem icon="STOCK_INDENT" action="action_create_flow_cash"
+            id="menu_action_create_flow_cash"
+            parent="account.menu_finance_reports" />
+        
+    </data>
+</openerp>
