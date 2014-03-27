@@ -76,7 +76,7 @@ class create_flow_cash(osv.osv_memory):
         return result
     
     _defaults = {
-                'comp_transf': True,
+                'comp_transf': lambda *a: True,
                 'date_from': _get_datefrom,
                 'date_to': lambda *a: time.strftime('%Y-%m-%d'),
                 'date_ger': lambda *a: time.strftime('%Y-%m-%d'),

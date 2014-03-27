@@ -36,6 +36,7 @@ class account_flow_cash(osv.osv_memory):
     }
     
     def create_flow(self, cr, uid, DataIn, DataOut, context=None, **kwargs):
+        _logger.info('Gerando Fluxo de Caixa de '+str(DataIn)+' até '+str(DataOut)+' '+str(kwargs))
         if context == None:
             context = {}
         sintetico = False
@@ -100,13 +101,15 @@ class account_flow_cash(osv.osv_memory):
         for r in cr.fetchall():
             if account_id:
                 if int(account_id) == int(r[0]):
-                    vlCred =+ float(r[1] or 0)
-                    vlDeb =+ float(r[2] or 0)
+                    vlCred += float(r[1] or 0)
+                    vlDeb += float(r[2] or 0)
+                _logger.info("Somado no filtro vlCred += "+str(r[1] or 0)+" & vlDeb += "+str(r[2] or 0))
             else:
-                vlCred =+ float(r[1] or 0)
-                vlDeb =+ float(r[2] or 0)
-                
-            
+                vlCred += float(r[1] or 0)
+                vlDeb += float(r[2] or 0)
+                _logger.info("Somado no total vlCred += "+str(r[1] or 0)+" & vlDeb += "+str(r[2] or 0))
+
+
         _logger.info('Creditos/Debitos = '+str(vlCred)+' / '+str(vlDeb))
 
         vlAcum = vlDeb - vlCred
@@ -146,15 +149,21 @@ class account_flow_cash(osv.osv_memory):
             for MoveLine in AccMoveLine.browse(cr, uid, MoveLineIds, context):
                 computa = True
                 if transf == False:
-                    CPartidaIds = AccMoveLine.search(cr, uid,[('move_id', '=', MoveLine.move_id.id), ('id', '<>', MoveLine.id),('account_id.type','=','liquidity'),],order='date')
-                    if len(CPartidaIds) > 0:
+                    cre = MoveLine.credit
+                    deb = MoveLine.debit
+                    CPartidaIds = AccMoveLine.search(cr, uid,[('move_id', '=', MoveLine.move_id.id), 
+                                                              ('id', '<>', MoveLine.id),
+                                                              ('account_id.type','=','liquidity'),
+                                                              ('credit','=',deb),
+                                                              ('debit','=',cre)],order='date')
+                    if CPartidaIds:
                         computa = False
                 if computa:
-                    if MoveLine.credit > 0:
+                    if MoveLine.credit:
                         vlCredito = MoveLine.credit
                     else:
                         vlCredito = 0
-                    if MoveLine.debit > 0:
+                    if MoveLine.debit:
                         vlDebito = MoveLine.debit
                     else:
                         vlDebito = 0

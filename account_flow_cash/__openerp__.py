@@ -2,7 +2,7 @@
 
 {
     "name": "FlowCash",
-    "version": "0.0.002",
+    "version": "0.0.003",
     "author": "Alexandre Defendi",
     "category": "Account",
     "website": "http://evoluirinformatica.com.br",
