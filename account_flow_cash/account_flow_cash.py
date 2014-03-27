@@ -112,15 +112,15 @@ class account_flow_cash(osv.osv_memory):
         #vlAcum = vlDeb - vlCred
         if journal_id:
             if account_cd == '1.01.01.02.003':
-                vlAcum = vlDeb - (vlCred + (-5116.06))
+                vlAcum = vlDeb - (vlCred + 5116.06)
             elif account_cd == '1.01.01.02.004':
-                vlAcum = vlDeb - (vlCred + 11431.33)
+                vlAcum = vlDeb - (vlCred + (-11431.33))
             elif account_cd == '1.01.01.02.005':
-                vlAcum = vlDeb - (vlCred + (-688,24))
+                vlAcum = vlDeb - (vlCred + 688,24)
             elif account_cd == '1.01.01.02.006':
-                vlAcum = vlDeb - (vlCred + (-805.95))
+                vlAcum = vlDeb - (vlCred + 805.95)
             elif account_cd == '1.01.01.02.007':
-                vlAcum = vlDeb - (vlCred + (-192.81))
+                vlAcum = vlDeb - (vlCred + 192.81)
         else:
             vlAcum = vlDeb - (vlCred + 4628.27)
         
