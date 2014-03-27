@@ -42,6 +42,7 @@ class account_flow_cash(osv.osv_memory):
         account_analitic_id = False
         journal_id = False
         account_id = False
+        account_cd = False
         tipo = 'all'
         transf = False
         SaldoAnterior = 0
@@ -58,6 +59,7 @@ class account_flow_cash(osv.osv_memory):
                 journal_id = kwargs['journal_id']
                 journal = self.pool.get('account.journal').browse(cr,uid,journal_id,context=None)
                 account_id = journal.default_debit_account_id.id
+                account_cd = journal.default_debit_account_id.code
                 tipo = 'real'
                 
                 
@@ -107,8 +109,20 @@ class account_flow_cash(osv.osv_memory):
             
         _logger.info('Creditos/Debitos = '+str(vlCred)+' / '+str(vlDeb))
 
-        vlAcum = vlDeb - vlCred
-        #vlAcum = vlDeb - (vlCred + 4628.27)
+        #vlAcum = vlDeb - vlCred
+        if journal_id:
+            if account_cd == '1.01.01.02.003':
+                vlAcum = vlDeb - (vlCred + (-5116.06))
+            elif account_cd == '1.01.01.02.004':
+                vlAcum = vlDeb - (vlCred + 11431.33)
+            elif account_cd == '1.01.01.02.005':
+                vlAcum = vlDeb - (vlCred + (-688,24))
+            elif account_cd == '1.01.01.02.006':
+                vlAcum = vlDeb - (vlCred + (-805.95))
+            elif account_cd == '1.01.01.02.007':
+                vlAcum = vlDeb - (vlCred + (-192.81))
+        else:
+            vlAcum = vlDeb - (vlCred + 4628.27)
         
         dLineFlow = {
                      'name': 'Saldo Anterior',
@@ -121,7 +135,6 @@ class account_flow_cash(osv.osv_memory):
         Seq = 1
         vlSaldo = 0
         dtFinal = False
-        vlAcum = 0
         if tipo=='all' or tipo=='real': 
             _logger.info('realizado: '+tipo)  #        if journal_id:sql = sql + " AND a.journal_id = %d" % (journal_id,)
             #MoveLineIds = AccMoveLine.search(cr, uid, [('date', '>=', DataIn), ('date', '<=', DataOut),('account_id.name', '=like', '%s%%' % '1.01.01.'),], order='date,id')
