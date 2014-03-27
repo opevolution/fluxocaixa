@@ -14,20 +14,20 @@
                 	<field name="date_ger" invisible="1"/>
                     <group col="4">
                     	<group>
-                    		<field name="date_from" attrs="{'readonly' : [('target_move','=','pv')]}"/>/>
+                    		<field name="date_from" attrs="{'invisible' : [('target_move','=','pv')]}"/>
                     	</group>
 						<group>
-							<field name="date_to" attrs="{'readonly' : [('target_move','=','ok')]}"/>
+							<field name="date_to" attrs="{'invisible' : [('target_move','=','ok')]}"/>
 						</group>
                     </group>
                     <group col="4">
                     	<group>
                     		<field name="target_move"/>
-                    		<field name='journal_id'/>
+                    		<field name='journal_id' attrs="{'invisible' : [('target_move','=','pv')]}"/>
                     	</group>
                     	<group>
                     		<field name='sintetico'/>
-                    		<field name="comp_transf"/>
+                    		<field name="comp_transf" attrs="{'invisible' : [('target_move','=','pv')]}"/>
                     	</group>
                     </group>
                     <footer>
@@ -42,7 +42,7 @@
          <record id="action_create_flow_cash" model="ir.actions.act_window">
             <field name="name">Fluxo de caixa</field>
             <field name="res_model">create.flow_cash</field>
-            <field name="view_type">form</field>
+            <field name="view_type">tree</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_create_flow_cash"/>
             <field name="target">new</field>

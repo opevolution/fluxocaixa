@@ -98,6 +98,8 @@ class account_flow_cash(osv.osv_memory):
 #         vlDeb = float(res[1] or 0)
         vlCred = float(0)
         vlDeb = float(0)
+        vlAcumCr = float(0)
+        vlAcumDb = float(0)
         for r in cr.fetchall():
             if account_id:
                 if int(account_id) == int(r[0]):
@@ -167,6 +169,8 @@ class account_flow_cash(osv.osv_memory):
                         vlDebito = MoveLine.debit
                     else:
                         vlDebito = 0
+                    vlAcumCr = vlAcumCr + vlCredito
+                    vlAcumDb = vlAcumDb + vlDebito 
                     vlSaldo = vlDebito - vlCredito
                     vlAcum  = vlAcum + vlSaldo
                     name = MoveLine.ref or MoveLine.name or ''
@@ -194,7 +198,9 @@ class account_flow_cash(osv.osv_memory):
             MoveLineIds = AccMoveLine.search(cr, uid, [('date_maturity','<>',False),('date_maturity', '<=', DataOut),('account_id.type', 'in', ['receivable', 'payable']),('reconcile_id', '=', False),], order='date_maturity,id')
             for MoveLine in AccMoveLine.browse(cr, uid, MoveLineIds, context):
                 if datetime.strptime(MoveLine.date_maturity,'%Y-%m-%d') < datetime.today():
-                    DateDue = datetime.today()
+                    #DateDue = datetime.today()
+                    DateDue = datetime.strptime(MoveLine.date_maturity,'%Y-%m-%d')
+                    _logger.info(str(DateDue))
                     Status = 'at'
                 else:
                     DateDue = datetime.strptime(MoveLine.date_maturity,'%Y-%m-%d')
@@ -207,6 +213,8 @@ class account_flow_cash(osv.osv_memory):
                     vlDebito = MoveLine.amount_to_pay * (-1)
                 else:
                     vlDebito = 0
+                vlAcumCr = vlAcumCr + vlCredito
+                vlAcumDb = vlAcumDb + vlDebito 
                 vlSaldo = vlDebito - vlCredito
                 vlAcum  = vlAcum + vlSaldo
                 name = MoveLine.ref or MoveLine.name or ''
@@ -233,6 +241,8 @@ class account_flow_cash(osv.osv_memory):
                          'flowcash_id': idFlowCash,
                          'seq': Seq,
                          #'date': dtFinal,
+                         'val_in': vlAcumDb, 
+                         'val_out': vlAcumCr,
                          'val_sum': vlAcum,
                          }
             LineFlowId = FlowCashLine.create(cr,uid,dLineFlow,context)

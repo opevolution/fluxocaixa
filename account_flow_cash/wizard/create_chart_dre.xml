@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+		<record id="view_wiz_create_chart_dre_form" model="ir.ui.view">
+			<field name="name">wiz.create.chart_dre.form</field>
+			<field name="model">wiz.create.chart_dre</field>
+			<field name="arch" type="xml">
+				<form string="Gerador do DRE Gráfico" version="7.0">
+					<header>
+						<label align="0.7" string="Gerador do Gráfico DRE do período."/>
+					</header>
+					<sheet>
+						<group>
+							<field name="date_ger" readonly="1"/>
+							<field name="period_from"/>
+						</group>
+					</sheet>
+					<footer>
+						<group>
+							<button icon="gtk-apply" string="Gerar" name="action_wiz_create_chart_dre" type="object" default_focus="1" class="oe_highlight"/>
+							or
+							<button string="Cancelar" class="oe_link" special="cancel"/>
+						</group>
+					</footer>
+				</form>
+			</field>
+		</record>
+
+		<act_window
+			id="act_wiz_create_chart_dre"
+			key2="client_action_multi"
+			name="Gerar DRE por Período"
+			res_model="wiz.create.chart_dre"
+			src_model="chart_dre_line"
+			view_id="view_wiz_create_chart_dre_form"
+			view_mode="form"
+			target="new"
+			view_type="form"/>
+
+         <record id="action_wiz_create_chart_dre" model="ir.actions.act_window">
+            <field name="name">Gera DRE</field>
+            <field name="res_model">wiz.create.chart_dre</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_wiz_create_chart_dre_form"/>
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem icon="STOCK_INDENT" action="action_wiz_create_chart_dre"
+            id="menu_wiz_create_chart_dre"
+            parent="account.menu_finance_reports" />
+
+    </data>
+</openerp>

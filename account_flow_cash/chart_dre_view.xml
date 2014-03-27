@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_chart_dre_tree" model="ir.ui.view">
+            <field name="name">chart_dre.tree</field>
+            <field name="model">chart_dre</field>
+            <field name="arch" type="xml">
+                <tree string="DRE Gerado" version="7.0">
+                    <field name="date"/>
+                    <field name="period_id"/>
+				</tree>
+            </field>
+        </record>
+
+		<record id="view_chart_dre_form" model="ir.ui.view">
+            <field name="name">chart_dre.form</field>
+            <field name="model">chart_dre</field>
+            <field name="arch" type="xml">
+                <form string="DRE Gerado" version="7.0">
+                	<header>
+                		<label align="0.7" string="Gráfico do Fluxo de Caixa por Conta" class="oe_inline"/>
+                	</header>
+                	<sheet> 
+                		<group>
+                			<field name="date"/>
+                			<field name="period_id"/>	
+                		</group>
+                		<group>
+                			<field name="linhas_ids" nolabel="1">
+				                <tree string="Linhas do DRE">
+				                    <field name="code"/>
+				                    <field name="name"/>
+				                    <field name="value"/>
+				                </tree>
+                			</field>
+                		</group>
+                	</sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_chart_dre" model="ir.actions.act_window">
+            <field name="name">DRE Gerado</field>
+            <field name="res_model">chart_dre</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_chart_dre_tree"/>
+        </record>
+
+		<!-- 
+        <menuitem icon="STOCK_INDENT" action="action_chart_dre"
+            id="menu_chart_dre"
+            parent="account.menu_finance_reports" />  -->
+
+		<record id="view_chart_dre_line_form" model="ir.ui.view">
+            <field name="name">chart_dre_line.form</field>
+            <field name="model">chart_dre_line</field>
+            <field name="arch" type="xml">
+                <form string="Gráfico DRE Período" version="7.0">
+                	<header>
+                		<label align="0.7" string="Conta do Gráfico do Fluxo de Caixa (DRE)" class="oe_inline"/>
+                	</header>
+                	<sheet> 
+                		<group col="4">
+                			<group>
+	                			<field name="code"/>
+	                			<field name="name"/>
+	                			<field name="parent_id"/>
+	                			<field name="value"/>	
+                			</group>
+                			<group>
+                				<field name="type"/>
+	                			<field name="period_id"/>
+	                			<field name="account_id"/>	
+	                			<field name="sum" string="Soma"/>
+                			</group>
+                		</group>
+                		<group>
+                			<field name="child_parent_ids" nolabel="1">
+				                <tree string="Contas Filhas">
+				                    <field name="code"/>
+				                    <field name="name"/>
+				                    <field name="sum" string="Soma"/>
+				                </tree>
+                			</field>
+                		</group>
+                	</sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_chart_dre_line_tree" model="ir.ui.view">
+            <field name="name">chart_dre_line.tree</field>
+            <field name="model">chart_dre_line</field>
+            <field eval="1" name="priority"/>
+            <field name="arch" type="xml">
+                <tree string="Gráfico DRE Período" version="7.0">
+                	<field name="period_id"/>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="sum" string="Saldo"/>
+				</tree>
+            </field>
+        </record>
+
+        <record id="action_chart_dre_line" model="ir.actions.act_window">
+            <field name="name">DRE Período</field>
+            <field name="res_model">chart_dre_line</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="limit">300</field>
+            <field name="view_id" ref="view_chart_dre_line_tree"/>
+        </record>
+
+        <menuitem icon="STOCK_INDENT" action="action_chart_dre_line"
+            id="menu_chart_dre_line"
+            parent="account.menu_finance_reports" />
+
+    </data>
+</openerp>

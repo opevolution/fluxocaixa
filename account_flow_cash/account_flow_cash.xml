@@ -37,7 +37,7 @@
             <field name="name">Fluxo de Caixa</field>
             <field name="res_model">account.flow_cash</field>
             <field name="view_type">form</field>
-            <field name="view_mode">form</field>
+            <field name="view_mode">form,tree</field>
             <field name="view_id" ref="view_account_flow_cash_form"/>
         </record>
     
