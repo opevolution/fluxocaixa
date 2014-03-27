@@ -7,19 +7,28 @@
             <field name="arch" type="xml">
                 <form string="Fluxo Caixa do Período" version="7.0">
                 	<div>
-                		<label align="0.7" string="Visualizar fluxo de caixa." class="oe_inline"/>	
+                		<h1>
+                			<label align="0.7" string="Visualizar fluxo de caixa." class="oe_inline"/>
+                		</h1>	
                 	</div>
-                    <group>
-                    	<field name="target_move"/>
-                    	<field name="comp_transf"/>
-                    </group>
-                    <group>
+                	<field name="date_ger" invisible="1"/>
+                    <group col="4">
                     	<group>
                     		<field name="date_from" attrs="{'readonly' : [('target_move','=','pv')]}"/>/>
                     	</group>
 						<group>
 							<field name="date_to" attrs="{'readonly' : [('target_move','=','ok')]}"/>
 						</group>
+                    </group>
+                    <group col="4">
+                    	<group>
+                    		<field name="target_move"/>
+                    		<field name='journal_id'/>
+                    	</group>
+                    	<group>
+                    		<field name='sintetico'/>
+                    		<field name="comp_transf"/>
+                    	</group>
                     </group>
                     <footer>
                         <button string="Visualizar" name="show_flow_cash" type="object" class="oe_highlight"/>

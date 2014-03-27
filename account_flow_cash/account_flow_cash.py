@@ -35,9 +35,32 @@ class account_flow_cash(osv.osv_memory):
                                         ], 'Filtro', required=True,readonly=True),
     }
     
-    def create_flow(self, cr, uid, DataIn, DataOut, Tipo='all', Transf=False, context=None):
+    def create_flow(self, cr, uid, DataIn, DataOut, context=None, **kwargs):
         if context == None:
             context = {}
+        sintetico = False
+        account_analitic_id = False
+        journal_id = False
+        account_id = False
+        tipo = 'all'
+        transf = False
+        SaldoAnterior = 0
+        if kwargs:
+            if 'transf' in kwargs:
+                transf = kwargs['transf']
+            if 'tipo' in kwargs:
+                tipo = kwargs['tipo']
+            if 'sintetico' in kwargs:
+                sintetico = kwargs['sintetico']
+            if 'account_analitic_id' in kwargs:
+                account_analitic_id = kwargs['account_analitic_id']
+            if 'journal_id' in kwargs:
+                journal_id = kwargs['journal_id']
+                journal = self.pool.get('account.journal').browse(cr,uid,journal_id,context=None)
+                account_id = journal.default_debit_account_id.id
+                tipo = 'real'
+                
+                
         _logger.info('DataIn = '+str(DataIn))    
         _logger.info('DataOut = '+str(DataOut))    
         hoje = datetime.today()
@@ -45,7 +68,7 @@ class account_flow_cash(osv.osv_memory):
                  'date_from': DataIn,
                  'date_to': DataOut,
                  'date': hoje,
-                 'target_move': Tipo,
+                 'target_move': tipo,
                  }
         _logger.info('SQL = '+str(dFlow))
         FlowCash = self.pool.get('account.flow_cash')
@@ -53,23 +76,40 @@ class account_flow_cash(osv.osv_memory):
         idFlowCash = FlowCash.create(cr,uid,dFlow,context)
         AccMoveLine = self.pool.get('account.move.line')
         
-        sql = "SELECT sum(credit) as vlcred, sum(debit) as vldebit " \
+        sql = "SELECT a.account_id as id, sum(a.credit) as vlcred, sum(a.debit) as vldebit " \
               "FROM account_move_line a " \
               "JOIN account_account b ON a.account_id = b.id " \
               "WHERE CAST(date AS DATE) < '%s'" % datetime.strftime(DataIn,'%Y-%m-%d')+" " \
-              "AND b.code similar to '(1.01.01.)%'"
+              "AND b.type = 'liquidity' "\
+              "GROUP BY a.account_id"
+
+#"AND b.code similar to '(1.01.01.)%'"
         
-        _logger.info('SQL = '+sql)
+        _logger.info('SQL = {'+sql+'}')
         
         cr.execute(sql)
-        res = cr.fetchone()
-        
-        vlCred = float(res[0] or 0)
-        vlDeb = float(res[1] or 0)
 
+#         res = cr.fetchone()
+#         
+#         vlCred = float(res[0] or 0)
+#         vlDeb = float(res[1] or 0)
+        vlCred = float(0)
+        vlDeb = float(0)
+        for r in cr.fetchall():
+            if account_id:
+                if int(account_id) == int(r[0]):
+                    vlCred =+ float(r[1] or 0)
+                    vlDeb =+ float(r[2] or 0)
+            else:
+                vlCred =+ float(r[1] or 0)
+                vlDeb =+ float(r[2] or 0)
+                
+            
         _logger.info('Creditos/Debitos = '+str(vlCred)+' / '+str(vlDeb))
 
         vlAcum = vlDeb - vlCred
+        #vlAcum = vlDeb - (vlCred + 4628.27)
+        
         dLineFlow = {
                      'name': 'Saldo Anterior',
                      'flowcash_id': idFlowCash,
@@ -80,13 +120,20 @@ class account_flow_cash(osv.osv_memory):
         LineFlowId = FlowCashLine.create(cr,uid,dLineFlow,context)
         Seq = 1
         vlSaldo = 0
-        if Tipo=='all' or Tipo=='real': 
-            _logger.info('realizado: '+Tipo)
-            MoveLineIds = AccMoveLine.search(cr, uid,[('date', '>=', DataIn), ('date', '<=', DataOut),('account_id', '=like', '%s%%' % '1.01.01.'),],order='date,id')
+        dtFinal = False
+        vlAcum = 0
+        if tipo=='all' or tipo=='real': 
+            _logger.info('realizado: '+tipo)  #        if journal_id:sql = sql + " AND a.journal_id = %d" % (journal_id,)
+            #MoveLineIds = AccMoveLine.search(cr, uid, [('date', '>=', DataIn), ('date', '<=', DataOut),('account_id.name', '=like', '%s%%' % '1.01.01.'),], order='date,id')
+            if account_id:
+                MoveLineIds = AccMoveLine.search(cr, uid, [('date', '>=', DataIn), ('date', '<=', DataOut),('account_id','=',account_id)], order='date,id')
+            else:
+                MoveLineIds = AccMoveLine.search(cr, uid, [('date', '>=', DataIn), ('date', '<=', DataOut),('account_id.type','=','liquidity'),], order='date,id')
+                
             for MoveLine in AccMoveLine.browse(cr, uid, MoveLineIds, context):
                 computa = True
-                if Transf == False:
-                    CPartidaIds = AccMoveLine.search(cr, uid,[('move_id', '=', MoveLine.move_id.id), ('id', '<>', MoveLine.id),('account_id', '=like', '%s%%' % '1.01.01.'),],order='date')
+                if transf == False:
+                    CPartidaIds = AccMoveLine.search(cr, uid,[('move_id', '=', MoveLine.move_id.id), ('id', '<>', MoveLine.id),('account_id.type','=','liquidity'),],order='date')
                     if len(CPartidaIds) > 0:
                         computa = False
                 if computa:
@@ -117,13 +164,12 @@ class account_flow_cash(osv.osv_memory):
                                  }
                     LineFlowId = FlowCashLine.create(cr,uid,dLineFlow,context)
                     Seq = Seq + 1
+                    dtFinal = MoveLine.date
 
-        if Tipo=='all' or Tipo=='prev':
+        if tipo=='all' or tipo=='prev':
             _logger.info('previsto')
-            MoveLineIds = AccMoveLine.search(cr, uid,[('date_maturity','<>',False),
-                                                      ('date_maturity', '<=', DataOut),
-                                                      ('account_id.type', 'in', ['receivable', 'payable']), 
-                                                      ('reconcile_id', '=', False),],order='date_maturity,id')
+            #MoveLineIds = AccMoveLine.search(cr, uid, [('date_maturity','<>',False),('date_maturity', '<=', DataOut),('account_id.type', 'in', ['receivable', 'payable']),('reconcile_id', '=', False),], order='date_maturity,id')
+            MoveLineIds = AccMoveLine.search(cr, uid, [('date_maturity','<>',False),('date_maturity', '<=', DataOut),('account_id.type', 'in', ['receivable', 'payable']),('reconcile_id', '=', False),], order='date_maturity,id')
             for MoveLine in AccMoveLine.browse(cr, uid, MoveLineIds, context):
                 if datetime.strptime(MoveLine.date_maturity,'%Y-%m-%d') < datetime.today():
                     DateDue = datetime.today()
@@ -158,6 +204,16 @@ class account_flow_cash(osv.osv_memory):
                              }
                 LineFlowId = FlowCashLine.create(cr,uid,dLineFlow,context)
                 Seq = Seq + 1
+                dtFinal = DateDue
+        if dtFinal:
+            dLineFlow = {
+                         'name': 'Saldo Final',
+                         'flowcash_id': idFlowCash,
+                         'seq': Seq,
+                         #'date': dtFinal,
+                         'val_sum': vlAcum,
+                         }
+            LineFlowId = FlowCashLine.create(cr,uid,dLineFlow,context)
         
         return idFlowCash
     
@@ -184,6 +240,9 @@ class account_flow_cash_line(osv.osv_memory):
             ('pv','Prev'),
             ('at','Atra'),
             ],'St', select=True,),
+        'journal_id': fields.many2one('account.journal', u'Diário',domain=['|',('type', '=', 'cash'),('type', '=', 'bank')]),
+        'analytic_account_id': fields.many2one('account.analytic.account', u'Conta Analítica',),
+        'sintetico': fields.boolean(u'Sintético'),
     }
     
     _defaults = {
