@@ -6,3 +6,4 @@ encoding/__init__.py=utf-8
 encoding/__openerp__.py=utf-8
 encoding/account_chart_flow_cash.py=utf-8
 encoding/account_flow_cash.py=utf-8
+encoding/chart_dre.py=utf-8

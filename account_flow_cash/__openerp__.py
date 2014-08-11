@@ -2,7 +2,7 @@
 
 {
     "name": "FlowCash",
-    "version": "0.0.09",
+    "version": "0.0.10",
     "author": "Alexandre Defendi",
     "category": "Account",
     "website": "http://evoluirinformatica.com.br",
@@ -11,6 +11,7 @@
     'js': [],
     'init_xml': [],
     'update_xml': [
+        'res_company_view.xml',
         'account_flow_cash.xml',
         'chart_dre_view.xml',
         'wizard/create_flow_cash.xml',

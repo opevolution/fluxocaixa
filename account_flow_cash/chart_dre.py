@@ -41,8 +41,11 @@ class chart_dre(osv.osv):
         objContaTipo = self.pool.get('account.account.type')
         objAcMoveLine = self.pool.get('account.move.line')
         objPartner = self.pool.get('res.partner')
+        objCompany = self.pool.get('res.company')
         
         company_id = self.pool.get('res.users').browse(cr, uid, uid, context).company_id.id
+        bwCompany = objCompany.brownse(cr,uid,company_id)
+        
         Periodo = objPeriodo.browse(cr,uid,id_periodo)
         
         DataIn = datetime.strptime(Periodo.date_start,'%Y-%m-%d')
@@ -243,8 +246,33 @@ class chart_dre(osv.osv):
                             _logger.info("Lanca Reconcile: "+str(lanca))
                             obj_dre_line.create(cr,uid,lanca,context)
                             lancado = True
+                            
             if not lancado:
-                _logger.info("Não Lancou: id="+str(r[0])+" Ref="+str(r[3])+" Movimento="+str(r[8]))
+                account = obj_account.browse(cr,uid,r[2],context)
+                
+                if vlSaldo > 0:
+                    sql4 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
+                           "account_id = '%s'" % bwCompany.account_revenue_id.id
+                else:
+                    sql4 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
+                           "account_id = '%s'" % bwCompany.account_expense_id.id
+                _logger.info("SQL4: "+str(sql4))
+               
+                cr.execute(sql4)
+                cx = cr.fetchone()
+                if cx:
+                    lanca = {
+                             'chart_id': id_chart, 
+                             'account_id': False,
+                             'code': str(account.code)+'-%03d' % int(r[0]),
+                             'name': str(r[3])+NomeDoPartner,
+                             'period_id': id_periodo,
+                             'parent_id': cx[0],
+                             'type': 'lancamento',
+                             'value': vlSaldo,
+                             }
+                else:
+                    _logger.info("Não Lancou: id="+str(r[0])+" Ref="+str(r[3])+" Movimento="+str(r[8]))
                 
     
 chart_dre()

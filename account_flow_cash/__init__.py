@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 try:
+    import res_company
     import account_flow_cash
     import chart_dre
     import wizard
