@@ -44,7 +44,7 @@ class chart_dre(osv.osv):
         objCompany = self.pool.get('res.company')
         
         company_id = self.pool.get('res.users').browse(cr, uid, uid, context).company_id.id
-        bwCompany = objCompany.brownse(cr,uid,company_id)
+        bwCompany = objCompany.browse(cr,uid,company_id)
         
         Periodo = objPeriodo.browse(cr,uid,id_periodo)
         
