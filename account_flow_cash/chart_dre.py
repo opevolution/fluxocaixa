@@ -246,6 +246,7 @@ class chart_dre(osv.osv):
                             _logger.info("Lanca Reconcile: "+str(lanca))
                             obj_dre_line.create(cr,uid,lanca,context)
                             lancado = True
+                            break
                             
             if not lancado:
                 account = obj_account.browse(cr,uid,r[2],context)
