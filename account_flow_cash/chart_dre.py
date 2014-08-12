@@ -124,14 +124,14 @@ class chart_dre(osv.osv):
             for mvCP in cr.fetchall():
                 vlSaldo = float(mvCP[5])-float(mvCP[6])
 
-                descricao = 'Em '+str(mvCP[1])
+                descricao = '> Em '+str(mvCP[1])
                 
                 if mvCP[3]:
                     descricao = descricao + ', '+mvCP[3]
                 
                 Partner = objPartner.browse(cr,uid,mvCP[4],context)
                 if Partner:
-                    descricao = ', parceiro '+Partner.name
+                    descricao = descricao + ', parceiro '+Partner.name
 
                 descricao = descricao + ' ['+str(mvCP[0])+']'
     
