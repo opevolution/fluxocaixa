@@ -211,8 +211,19 @@ class chart_dre(osv.osv):
                              'type': 'lancamento',
                              'value': vlSaldo,
                              }
+                    obj_dre_line.create(cr,uid,lanca,context)
                 else:
-                    _logger.info(u"Não Lancou: id="+str(mvCP[0])+u" Ref="+str(mvCP[3])+u" Movimento="+str(mvCP[8]))
+                    lanca = {
+                             'chart_id': id_chart, 
+                             'account_id': False,
+                             'code': '*' + str(account.code)+'-%03d' % int(mvCP[0]),
+                             'name': descricao,
+                             'period_id': id_periodo,
+                             'parent_id': False,
+                             'type': 'lancamento',
+                             'value': vlSaldo,
+                             }
+                    obj_dre_line.create(cr,uid,lanca,context)
                 
 chart_dre()
 
