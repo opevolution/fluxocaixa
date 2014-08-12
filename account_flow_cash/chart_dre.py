@@ -45,7 +45,7 @@ class chart_dre(osv.osv):
         
         company_id = self.pool.get('res.users').browse(cr, uid, uid, context).company_id.id
         bwCompany = objCompany.browse(cr,uid,company_id)
-        
+
         Periodo = objPeriodo.browse(cr,uid,id_periodo)
         
         DataIn = datetime.strptime(Periodo.date_start,'%Y-%m-%d')
@@ -64,8 +64,6 @@ class chart_dre(osv.osv):
         sql = "select id, code, name, parent_id, type, user_type from account_account "\
               " where code like '%s' and company_id = %s order by code" % ('3%',str(company_id))
         
-        #_logger.info('SQL Selecao = {'+sql+'}')
-        
         cr.execute(sql)
 
         for rcAccount in cr.fetchall():
@@ -81,8 +79,7 @@ class chart_dre(osv.osv):
                     CtTipo = 'despesa'
                 elif ContaTipo == 'view':
                     CtTipo = 'total'
-                #_logger.info('['+rcAccount[1]+':'+str(rcAccount[5]))     
-                #_logger.info('Tipo da Conta ['+ContaTipo+']: '+CtTipo)
+
                 cdParentAccount = obj_account.browse(cr, uid, rcAccount[0], context).parent_id.code
                 
                 parentid = False
@@ -90,7 +87,7 @@ class chart_dre(osv.osv):
                     shIds = obj_dre_line.search(cr, uid,[('code','=',cdParentAccount)])
                     if shIds:
                         parentid = shIds[0] 
-                #_logger.info('Parente da Conta '+rcAccount[1]+' = {'+str(cdParentAccount)+'}')
+
                 linha = {
                          'chart_id': id_chart, 
                          'account_id': rcAccount[0],
@@ -103,153 +100,90 @@ class chart_dre(osv.osv):
                          'value': 0,
                          }
                 
-                #_logger.info('linha = {'+str(linha)+'}')
-    
                 line_id = obj_dre_line.create(cr,uid,linha,context)
-               
-#                 if rcAccount[4] and rcAccount[4] <> 'view':
-#                     
-#                     obj_dre_line.write(cr, uid, [line_id], {'type': 'analytic'}, context=context)
-#                     if rcAccount[3]:
-#                         parent_account = obj_account.browse(cr,uid,rcAccount[3])
-#                         #_logger.info('parent_account.code = '+str(parent_account.code))
-#                         parent_id = obj_dre_line.search(cr,uid,[('chart_id','=',dre.id)])
-#                         #_logger.info('parent_id = '+str(parent_id))
-#                         if parent_id:
-#                             linha['parent_id'] = parent_id[0]
-#                             
-#                         MoveLineIds = objAcMoveLine.search(cr, uid, [('date', '>=', DataIn), 
-#                                                                      ('date', '<=', DataOut),
-#                                                                      ('account_id','=',rcAccount[0])], order='date,id')
-#                  
-#                         vlAcumCr = float(0)
-#                         vlAcumDb = float(0)
-#                         vlSaldo = float(0)
-#                         indice = 0
-#                      
-#                         #_logger.info('SQL COMPUTE: '+ sql1) 
-#                         for MoveLine in objAcMoveLine.browse(cr, uid, MoveLineIds, context):
-#                             cre = MoveLine.credit
-#                             deb = MoveLine.debit
-#                             CPartidaIds = objAcMoveLine.search(cr, uid,[('move_id', '=', MoveLine.move_id.id), 
-#                                                                         ('id', '<>', MoveLine.id),
-#                                                                         ('account_id.type','=','liquidity'),
-#                                                                         ('credit','=',deb),
-#                                                                         ('debit','=',cre)],order='date')
-#                             if CPartidaIds:
-#                                 if MoveLine.credit:
-#                                     vlCredito = MoveLine.credit
-#                                 else:
-#                                     vlCredito = 0
-#                                 if MoveLine.debit:
-#                                     vlDebito = MoveLine.debit
-#                                 else:
-#                                     vlDebito = 0
-#                                 vlAcumCr = vlAcumCr + vlCredito
-#                                 vlAcumDb = vlAcumDb + vlDebito 
-#                                 vlSaldo = vlCredito - vlDebito
-#                                 vlAcum  = vlAcum + vlSaldo
-#                                 name = u'Lançamento '+ (MoveLine.name or '') + ' / ' + (MoveLine.ref or MoveLine.name or '')
-#                                 if MoveLine.partner_id:
-#                                     if name: name = name + ", "
-#                                     name = name + MoveLine.partner_id.name
-#                                 indice = indice + 1
-#                                 lanca = {
-#                                          'chart_id': id_chart, 
-#                                          'account_id': rcAccount[0],
-#                                          'code': str(rcAccount[1])+'-%03d' % indice,
-#                                          'name': name,
-#                                          'period_id': id_periodo,
-#                                          'parent_id': line_id,
-#                                          'type': '                #_logger.info('linha = {'+str(linha)+'}')
-#                                           'lancamento',
-#                                          'value': vlSaldo,
-#                                          }
-#                                 obj_dre_line.create(cr,uid,lanca,context)
-#                     
-#                     obj_dre_line.write(cr, uid, line_id, {'value': vlAcum}, context=context)
 
-        sql1 = "select id from account_journal where type = 'cash' or type = 'bank'"
+        sql1 = "SELECT a.id, a.move_id FROM account_move_line a " + \
+               "JOIN account_account b ON a.account_id = b.id " + \
+               "WHERE CAST(a.date AS DATE) >= '%s'" % datetime.strftime(DataIn,'%Y-%m-%d') + \
+               " and CAST(a.date AS DATE) <= '%s'" %  datetime.strftime(DataOut,'%Y-%m-%d') + \
+               " and b.type = 'liquidity' order by a.date, a.id"
+
+        _logger.info(sql1)
         cr.execute(sql1)
-        
-        ids = cr.fetchall()
-        z = "WHERE journal_id in (%s)""" % (",".join([str(x[0]) for x in ids])) 
-        
-        sql1 = "select default_debit_account_id from account_journal where type = 'cash' or type = 'bank'"
-        cr.execute(sql1)
-        ids = cr.fetchall()
-        
-        z = z + " and account_id not in (%s)""" % (",".join([str(x[0]) for x in ids]))
-        z = z + " and CAST(date AS DATE) >= '%s'" % datetime.strftime(DataIn,'%Y-%m-%d') + \
-                " and CAST(date AS DATE) <= '%s'" %  datetime.strftime(DataOut,'%Y-%m-%d')
-        
-        sql2 = "select id, date, account_id, name, partner_id, credit, debit, reconcile_id, move_id from account_move_line "+z+" order by date, id" 
-        _logger.info(sql2)
-        cr.execute(sql2)
-        for r in cr.fetchall():
+        for mvLiq in cr.fetchall():
             lancado = False
-            _logger.info(str(r))
-            Partner = objPartner.browse(cr,uid,r[4],context)
-            if Partner:
-                NomeDoPartner = ', '+Partner.name
-            else:
-                NomeDoPartner = '' 
-            vlSaldo = float(r[5])-float(r[6])
-            sql3 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
-                   "account_id = '%s'" % r[2]
-            cr.execute(sql3)
-            cl = cr.fetchone()
+            _logger.info(str(mvLiq))
 
-            if cl:
-                account = obj_account.browse(cr,uid,r[2],context)
-                lancado = False
-                lanca = {
-                         'chart_id': id_chart, 
-                         'account_id': False,
-                         'code': str(account.code)+'-%03d' % int(r[0]),
-                         'name': str(r[3])+NomeDoPartner,
-                         'period_id': id_periodo,
-                         'parent_id': cl[0],
-                         'type': 'lancamento',
-                         'value': vlSaldo,
-                         }
-                _logger.info("Lanca: "+str(lanca))
-                obj_dre_line.create(cr,uid,lanca,context)
-                lancado = True
-            else:
-                if r[7]:
-                    sql3 = "select account_id from account_move_line where move_id = (" + \
-                           "select b.move_id from account_move_line a " + \
-                           "join account_move_line b " + \
-                           "on a.reconcile_id = b.reconcile_id " + \
-                           "where a.id <> b.id and a.id = %s)" % r[0]
-                    _logger.info("SQL3: "+str(sql3))
-                    cr.execute(sql3)
-                    for y in cr.fetchall():
-                        sql4 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
-                               "account_id = '%s'" % y[0]
-                        _logger.info("SQL4: "+str(sql4))
-                        cr.execute(sql4)
-                        cx = cr.fetchone()
-                        if cx:
-                            account = obj_account.browse(cr,uid,y[0],context)
-                            lanca = {
-                                     'chart_id': id_chart, 
-                                     'account_id': False,
-                                     'code': str(account.code)+'-%03d' % int(r[0]),
-                                     'name': str(r[3])+NomeDoPartner,
-                                     'period_id': id_periodo,
-                                     'parent_id': cx[0],
-                                     'type': 'lancamento',
-                                     'value': vlSaldo,
-                                     }
-                            _logger.info("Lanca Reconcile: "+str(lanca))
-                            obj_dre_line.create(cr,uid,lanca,context)
-                            lancado = True
-                            break
-                            
+            sql2 = "select id, date, account_id, name, partner_id, credit, debit, reconcile_id, move_id from account_move_line " + \
+                   "where move_id = %s " % str(mvLiq[1]) + \
+                   " and id <> %s " % str(mvLiq[0]) + \
+                   " order by date, id" 
+            _logger.info(sql2)
+            cr.execute(sql2)
+            
+            for mvCP in cr.fetchall():
+                vlSaldo = float(mvCP[5])-float(mvCP[6])
+
+                Partner = objPartner.browse(cr,uid,mvCP[4],context)
+                if Partner:
+                    NomeDoPartner = ', '+Partner.name
+                else:
+                    NomeDoPartner = '' 
+    
+                sql3 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
+                       "account_id = '%s'" % mvCP[2]
+                cr.execute(sql3)
+                cl = cr.fetchone()
+
+                if cl:
+                    account = obj_account.browse(cr,uid,mvCP[2],context)
+                    lancado = False
+                    lanca = {
+                              'chart_id': id_chart, 
+                              'account_id': False,
+                              'code': str(account.code)+'-%03d' % int(mvCP[0]),
+                              'name': str(mvCP[3])+NomeDoPartner,
+                              'period_id': id_periodo,
+                              'parent_id': cl[0],
+                              'type': 'lancamento',
+                              'value': vlSaldo,
+                              }
+                    _logger.info("Direto: "+str(lanca))
+                    obj_dre_line.create(cr,uid,lanca,context)
+                    lancado = True
+                else:
+                    if mvCP[7]:
+                        sql3 = "select account_id from account_move_line where move_id = (" + \
+                               "select b.move_id from account_move_line a " + \
+                               "join account_move_line b " + \
+                               "on a.reconcile_id = b.reconcile_id " + \
+                               "where a.id <> b.id and a.id = %s)" % mvCP[0]
+                        _logger.info("SQL3: "+str(sql3))
+                        cr.execute(sql3)
+                        for y in cr.fetchall():
+                            sql4 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
+                                   "account_id = '%s'" % y[0]
+                            _logger.info("SQL4: "+str(sql4))
+                            cr.execute(sql4)
+                            cx = cr.fetchone()
+                            if cx:
+                                account = obj_account.browse(cr,uid,y[0],context)
+                                lanca = {
+                                         'chart_id': id_chart, 
+                                         'account_id': False,
+                                         'code': str(account.code)+'-%03d' % int(mvCP[0]),
+                                         'name': str(mvCP[3])+NomeDoPartner,
+                                         'period_id': id_periodo,
+                                         'parent_id': cx[0],
+                                         'type': 'lancamento',
+                                         'value': vlSaldo,
+                                         }
+                                _logger.info("Lanca Reconcile: "+str(lanca))
+                                obj_dre_line.create(cr,uid,lanca,context)
+                                lancado = True
+                                break
             if not lancado:
-                account = obj_account.browse(cr,uid,r[2],context)
+                account = obj_account.browse(cr,uid,mvCP[2],context)
                 
                 if vlSaldo > 0:
                     sql4 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
@@ -265,17 +199,16 @@ class chart_dre(osv.osv):
                     lanca = {
                              'chart_id': id_chart, 
                              'account_id': False,
-                             'code': str(account.code)+'-%03d' % int(r[0]),
-                             'name': str(r[3])+NomeDoPartner,
+                             'code': str(account.code)+'-%03d' % int(mvCP[0]),
+                             'name': str(mvCP[3])+NomeDoPartner,
                              'period_id': id_periodo,
                              'parent_id': cx[0],
                              'type': 'lancamento',
                              'value': vlSaldo,
                              }
                 else:
-                    _logger.info("Não Lancou: id="+str(r[0])+" Ref="+str(r[3])+" Movimento="+str(r[8]))
+                    _logger.info(u"Não Lancou: id="+str(mvCP[0])+u" Ref="+str(mvCP[3])+u" Movimento="+str(mvCP[8]))
                 
-    
 chart_dre()
 
 class chart_dre_line(osv.osv):
