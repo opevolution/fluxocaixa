@@ -114,7 +114,7 @@ class chart_dre(osv.osv):
             lancado = False
             _logger.info(str(mvLiq))
 
-            sql2 = "select id, date, account_id, name, partner_id, credit, debit, reconcile_id, move_id from account_move_line " + \
+            sql2 = "select id, date, account_id, name, partner_id, credit, debit, reconcile_id, move_id, invoice from account_move_line " + \
                    "where move_id = %s " % str(mvLiq[1]) + \
                    " and id <> %s " % str(mvLiq[0]) + \
                    " order by date, id" 
@@ -124,11 +124,19 @@ class chart_dre(osv.osv):
             for mvCP in cr.fetchall():
                 vlSaldo = float(mvCP[5])-float(mvCP[6])
 
+                descricao = 'Em '+str(mvCP[1])
+                
+                if mvCP[3]:
+                    descricao = descricao + ', '+mvCP[3]
+                
+                if mvCP[9]:
+                    descricao = descricao + ', fatura '+str(mvCP[9])
+
                 Partner = objPartner.browse(cr,uid,mvCP[4],context)
                 if Partner:
-                    NomeDoPartner = ', '+Partner.name
-                else:
-                    NomeDoPartner = '' 
+                    descricao = ', parceiro '+Partner.name
+
+                descricao = descricao + ' ['+str(mvCP[0])+']'
     
                 sql3 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
                        "account_id = '%s'" % mvCP[2]
@@ -142,7 +150,7 @@ class chart_dre(osv.osv):
                               'chart_id': id_chart, 
                               'account_id': False,
                               'code': str(account.code)+'-%03d' % int(mvCP[0]),
-                              'name': str(mvCP[3])+NomeDoPartner,
+                              'name': descricao,
                               'period_id': id_periodo,
                               'parent_id': cl[0],
                               'type': 'lancamento',
@@ -172,7 +180,7 @@ class chart_dre(osv.osv):
                                          'chart_id': id_chart, 
                                          'account_id': False,
                                          'code': str(account.code)+'-%03d' % int(mvCP[0]),
-                                         'name': str(mvCP[3])+NomeDoPartner,
+                                         'name': descricao,
                                          'period_id': id_periodo,
                                          'parent_id': cx[0],
                                          'type': 'lancamento',
@@ -200,7 +208,7 @@ class chart_dre(osv.osv):
                              'chart_id': id_chart, 
                              'account_id': False,
                              'code': str(account.code)+'-%03d' % int(mvCP[0]),
-                             'name': str(mvCP[3])+NomeDoPartner,
+                             'name': descricao,
                              'period_id': id_periodo,
                              'parent_id': cx[0],
                              'type': 'lancamento',
