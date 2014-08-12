@@ -191,21 +191,23 @@ class chart_dre(osv.osv):
                 account = obj_account.browse(cr,uid,mvCP[2],context)
                 
                 if vlSaldo > 0:
-                    sql4 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
-                           "account_id = '%s'" % bwCompany.account_revenue_id.id
+                    nw_account_id = bwCompany.account_revenue_id.id
                 else:
-                    sql4 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
-                           "account_id = '%s'" % bwCompany.account_expense_id.id
+                    nw_account_id = bwCompany.account_expense_id.id
+
+                sql4 = "select id, parent_id from chart_dre_line where chart_id = %s and " % id_chart + \
+                       "account_id = '%s'" % nw_account_id 
                 _logger.info("SQL4: "+str(sql4))
                
                 cr.execute(sql4)
                 cx = cr.fetchone()
                 if cx:
+                    account2 = obj_account.browse(cr,uid,nw_account_id,context)
                     lanca = {
                              'chart_id': id_chart, 
                              'account_id': False,
-                             'code': str(account.code)+'-%03d' % int(mvCP[0]),
-                             'name': descricao,
+                             'code': str(account2.code)+' -%03d' % int(mvCP[0]),
+                             'name': '['+account.code + '] '+descricao,
                              'period_id': id_periodo,
                              'parent_id': cx[0],
                              'type': 'lancamento',
@@ -216,7 +218,7 @@ class chart_dre(osv.osv):
                     lanca = {
                              'chart_id': id_chart, 
                              'account_id': False,
-                             'code': '*' + str(account.code)+'-%03d' % int(mvCP[0]),
+                             'code': '9.' + str(account.code)+'-%03d' % int(mvCP[0]),
                              'name': descricao,
                              'period_id': id_periodo,
                              'parent_id': False,
