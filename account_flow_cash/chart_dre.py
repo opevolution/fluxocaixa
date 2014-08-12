@@ -114,7 +114,7 @@ class chart_dre(osv.osv):
             lancado = False
             _logger.info(str(mvLiq))
 
-            sql2 = "select id, date, account_id, name, partner_id, credit, debit, reconcile_id, move_id, invoice from account_move_line " + \
+            sql2 = "select id, date, account_id, name, partner_id, credit, debit, reconcile_id, move_id from account_move_line " + \
                    "where move_id = %s " % str(mvLiq[1]) + \
                    " and id <> %s " % str(mvLiq[0]) + \
                    " order by date, id" 
@@ -129,9 +129,6 @@ class chart_dre(osv.osv):
                 if mvCP[3]:
                     descricao = descricao + ', '+mvCP[3]
                 
-                if mvCP[9]:
-                    descricao = descricao + ', fatura '+str(mvCP[9])
-
                 Partner = objPartner.browse(cr,uid,mvCP[4],context)
                 if Partner:
                     descricao = ', parceiro '+Partner.name
